@@ -19,6 +19,7 @@ from pyemvue.device import (
     ChannelType,
     Vehicle,
     VehicleStatus,
+    ChargerSession, #jdw
 )
 
 API_ROOT = "https://api.emporiaenergy.com"
@@ -34,6 +35,7 @@ API_GET_STATUS = "customers/devices/status"
 API_OUTLET = "devices/outlet"
 API_VEHICLES = "customers/vehicles"
 API_VEHICLE_STATUS = "vehicles/v2/settings?vehicleGid={vehicleGid}"
+API_EVCHARGERSESSIONS = "devices/evchargersessions?deviceGid={deviceGid}"  #jdw
 
 API_MAINTENANCE = (
     "https://s3.amazonaws.com/com.emporiaenergy.manual.ota/maintenance/maintenance.json"
@@ -320,6 +322,39 @@ class PyEmVue(object):
             j = response.json()
             return VehicleStatus().from_json_dictionary(j)
         return None
+
+#jdw
+    def get_charger_sessions(self, charger_gid:int) -> dict[ChargerSession]:
+        """
+        Fetches charger sessions from the API and returns a dictionary of ChargerSession objects.
+        The dictionary is keyed by the session start time (which is assumed to be unique).
+    
+        Comparisons:
+        - In C#: You might use HttpClient to send a GET request and deserialize with JSON.NET.
+        - In JavaScript: You could use fetch() and then map over the JSON array to create objects.
+        """
+        # Call the API endpoint.
+        url = API_EVCHARGERSESSIONS.format(deviceGid=charger_gid)
+        response = self.auth.request("get", url)
+    
+        # Similar to HttpResponseMessage.EnsureSuccessStatusCode() in C#
+        response.raise_for_status()  
+    
+        sessions = {}  # This will be our dictionary mapping start_time to ChargerSession objects
+
+        # Check if the response contains text (non-empty response)
+        if response.text:
+            # Convert the text to a Python object (usually a list in this case)
+            data = response.json()
+            # Ensure that the data is a list (each element is a dictionary)
+            if data and isinstance(data, list):
+                # Loop through each session in the JSON list
+                for raw_session in data:
+                    session = ChargerSession.from_json_dictionary(raw_session)
+                    # Here we use start_time as the key; if you have another unique identifier, use it instead.
+                    sessions[session.start_time] = session  
+
+        return sessions
 
     def login(
         self,

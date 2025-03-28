@@ -464,3 +464,34 @@ class VehicleStatus(object):
             "chargeCurrentRequest": self.charge_current_request,
             "chargeCurrentRequestMax": self.charge_current_request_max,
         }
+
+class ChargerSession:
+    def __init__(self, device_gid, start_time, duration, dollars, amps,
+                 is_active_session, savings, potential_savings, kwh):
+        self.device_gid = device_gid
+        self.start_time = start_time
+        self.duration = duration
+        self.dollars = dollars
+        self.amps = amps
+        self.is_active_session = is_active_session
+        self.savings = savings
+        self.potential_savings = potential_savings
+        self.kwh = kwh
+
+    @classmethod
+    def from_json_dictionary(cls, data: dict) -> "ChargerSession":
+        """
+        Populates a new ChargerSession object using a dictionary.
+        This is similar to using a constructor in C# or mapping with an object literal in JavaScript.
+        """
+        return cls(
+            device_gid=data.get("deviceGid"),
+            start_time=data.get("startTime"),
+            duration=data.get("duration"),
+            dollars=data.get("dollars"),
+            amps=data.get("amps"),
+            is_active_session=data.get("isActiveSession"),
+            savings=data.get("savings"),
+            potential_savings=data.get("potentialSavings"),
+            kwh=data.get("kwh")
+        )
